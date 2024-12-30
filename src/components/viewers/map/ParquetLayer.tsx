@@ -4,7 +4,7 @@ import { GeoJsonLayer } from '@deck.gl/layers';
 import { load, registerLoaders } from '@loaders.gl/core';
 import { ParquetLoader } from '@loaders.gl/parquet';
 import * as wkx from 'wkx';
-import Map from 'react-map-gl/maplibre';
+import Map, { ViewState } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { INITIAL_VIEW_STATE } from './constants';
 
@@ -20,7 +20,7 @@ interface ParquetLayerProps {
 const ParquetLayer: React.FC<ParquetLayerProps> = ({ url, onLoad, onError, layerProps = {} }) => {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<Error | null>(null);
-  const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
+  const [viewState, setViewState] = useState<Record<string, any>>(INITIAL_VIEW_STATE);
   const deckRef = useRef<any>(null);
 
   useEffect(() => {
@@ -39,14 +39,14 @@ const ParquetLayer: React.FC<ParquetLayerProps> = ({ url, onLoad, onError, layer
 
         const result = await load(url, ParquetLoader, options);
         
-        if (!result) {
+        if (!result || !Array.isArray(result)) {
           throw new Error('No data returned from ParquetLoader');
         }
 
         console.log('Loaded Parquet data:', result);
 
         if (isMounted) {
-          const features = processParquetData(result.data);
+          const features = processParquetData(result);
           
           // Calculate bounds for initial view
           if (features.features.length > 0) {
