@@ -39,14 +39,20 @@ const ParquetLayer: React.FC<ParquetLayerProps> = ({ url, onLoad, onError, layer
 
         const result = await load(url, ParquetLoader, options);
         
-        if (!result || !Array.isArray(result)) {
+        if (!result) {
           throw new Error('No data returned from ParquetLoader');
         }
 
-        console.log('Loaded Parquet data:', result);
+        // Handle both ObjectRowTable and GeoJSONTable formats
+        const rows = (result as any).data || result;
+        if (!Array.isArray(rows)) {
+          throw new Error('Invalid data format returned from ParquetLoader');
+        }
+
+        console.log('Loaded Parquet data:', rows);
 
         if (isMounted) {
-          const features = processParquetData(result);
+          const features = processParquetData(rows);
           
           // Calculate bounds for initial view
           if (features.features.length > 0) {
