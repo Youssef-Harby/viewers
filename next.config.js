@@ -16,6 +16,16 @@ const nextConfig = {
 	publicRuntimeConfig: {
 		version,
 	},
+	webpack: (config, { isServer }) => {
+		// Handle fs module in browser
+		if (!isServer) {
+			config.resolve.fallback = {
+				...config.resolve.fallback,
+				fs: false,
+			};
+		}
+		return config;
+	},
 };
 
 module.exports = nextConfig;
